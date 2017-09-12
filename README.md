@@ -1,0 +1,1 @@
+There might be an "inspect" crate later that doesn't just read the primitives but uses File and maybe some trait function on Object to view the PDF objects. Why this is not an optimal solution: Every frame, we have to read everything again (depending on how many collapsing headers the user has expanded), except for the Root.

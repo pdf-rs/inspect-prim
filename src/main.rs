@@ -40,7 +40,7 @@ impl<'a, 'b, R: Resolve> Inspector<'a, 'b, R> {
     fn draw(&mut self, ui: &Ui, root: &Dictionary) {
         ui.text(im_str!("Root"));
         ui.separator();
-        ui.tree_node(im_str!("{}", self.new_id())).label(im_str!("Root")).build(|| self.view_dict(root));
+        ui.tree_node(im_str!("Root")).label(im_str!("Root")).build(|| self.view_dict(root));
     }
 
     fn view_primitive(&mut self, prim: &Primitive) {
@@ -51,17 +51,16 @@ impl<'a, 'b, R: Resolve> Inspector<'a, 'b, R> {
             Primitive::Boolean (x) => self.ui.text(im_str!("{}", x)),
             Primitive::String (ref x) => self.ui.text(im_str!("{}", "some string..")),
             Primitive::Stream (ref x) => {
-                self.attr("Data", &PdfString::new(x.data.clone()).into());
-                self.attr("Info", &x.info.clone().into());
-                self.ui.tree_node(im_str!("{}", self.new_id())).label(im_str!("Info")).build(|| self.view_dict(&x.info));
+                self.attr("Data", &PdfString::new(x.data.clone()).into(), 0);
+                self.attr("Info", &x.info.clone().into(), 1);
+                self.ui.tree_node(im_str!("Info")).build(|| self.view_dict(&x.info));
             }
             Primitive::Dictionary (ref x) => self.view_dict(x),
             Primitive::Array (ref x) => {}
             Primitive::Reference (ref x) => {
                 match self.resolve.resolve(*x) {
                     Ok(primitive) => {
-                        self.attr("", &primitive);
-                        // self.view_primitive(&primitive);
+                        self.attr("", &primitive, 0);
                     }
                     Err(_) => {im_str!("<error resolvind object>");},
                 }
@@ -70,17 +69,19 @@ impl<'a, 'b, R: Resolve> Inspector<'a, 'b, R> {
         };
     }
 
-    // TODO ensure that they all get the same ID every frame...
-
     fn view_dict(&mut self, dict: &Dictionary) {
+        let mut id = 0;
         for (key, val) in dict.iter() {
-            self.attr(key, val);
+            self.attr(key, val, id);
+            id += 1;
         }
     }
 
-    fn attr(&mut self, name: &str, val: &Primitive) {
+    /// Note: the point with `id` is just that ImGui needs some unique string identifier for each
+    /// tree node on the same level.
+    fn attr(&mut self, name: &str, val: &Primitive, id: i32) {
         let name = im_str!("{} <{}>", name, val.get_debug_name());
-        self.ui.tree_node(im_str!("{}", self.new_id())).label(name).build(|| self.view_primitive(val));
+        self.ui.tree_node(im_str!("{}", id)).label(name).build(|| self.view_primitive(val));
     }
 }
 

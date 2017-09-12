@@ -45,18 +45,23 @@ impl<'a, 'b, R: Resolve> Inspector<'a, 'b, R> {
 
     fn view_primitive(&mut self, prim: &Primitive) {
         match *prim {
-            Primitive::Null => self.ui.text(im_str!("<null>")),
+            Primitive::Null => {},
             Primitive::Integer (x) => self.ui.text(im_str!("{}", x)),
             Primitive::Number (x) => self.ui.text(im_str!("{}", x)),
             Primitive::Boolean (x) => self.ui.text(im_str!("{}", x)),
-            Primitive::String (ref x) => self.ui.text(im_str!("{}", "some string..")),
+            Primitive::String (ref x) => self.ui.text(im_str!("\"{}\"", x.as_str().unwrap())),
             Primitive::Stream (ref x) => {
                 self.attr("Data", &PdfString::new(x.data.clone()).into(), 0);
                 self.attr("Info", &x.info.clone().into(), 1);
                 self.ui.tree_node(im_str!("Info")).build(|| self.view_dict(&x.info));
             }
             Primitive::Dictionary (ref x) => self.view_dict(x),
-            Primitive::Array (ref x) => {}
+            Primitive::Array (ref x) => {
+                for (i, prim) in x.iter().enumerate() {
+                    let i = i as i32;
+                    self.attr(&format!("elem{}", i), prim, i);
+                }
+            }
             Primitive::Reference (ref x) => {
                 match self.resolve.resolve(*x) {
                     Ok(primitive) => {
@@ -65,7 +70,7 @@ impl<'a, 'b, R: Resolve> Inspector<'a, 'b, R> {
                     Err(_) => {im_str!("<error resolvind object>");},
                 }
             }
-            Primitive::Name (ref x) => self.ui.text(im_str!("{}", x))
+            Primitive::Name (ref x) => self.ui.text(im_str!("/{}", x))
         };
     }
 
@@ -85,28 +90,6 @@ impl<'a, 'b, R: Resolve> Inspector<'a, 'b, R> {
     }
 }
 
-
-// Ideas
-// Perhaps I need a more general way, which allows 'inspectors' to  view PDF in different ways.
-// For example an inspector that shows the decoded contents of stuff.
-// Or.. one that writes back the PDF file but with all streams decoded
-//
-// I would like to perhaps see what kind of primitive something is.
-// 
-// What about e.g '<not present>'? Should this kind of behaviour be delegated to the Viewer?
-//   - that is, just another function empty()
-//
-// Objects: object(), not just pass-through like earlier, but takes the primitive type
-//
-// Arrays? Probably a new tree_node for each element. attr("elem1", |viewer| elem1.view(viewer))
-//
-// References - should we pass around a Resolve?
-//
-// 
-// ..... I think perhaps it would be better with just to_primitive in Object:
-//   - easy to get the type of Primitive
-// or even easier: just read the first Primitive and use Resolve
-
 fn main() {
     let backend = Vec::<u8>::open("files/libreoffice.pdf").unwrap();
     let (xref_tab, trailer) = backend.read_xref_table_and_trailer().unwrap();
@@ -119,21 +102,7 @@ fn main() {
             .build(|| {
                 inspector.draw(ui, &trailer);
             });
+        // ui.show_style_editor(ui.imgui().style_mut());
         true
     });
 }
-
-
-    /*
-    let tree = Tree {left: Some(5), right: Some(4)};
-    ui.window(im_str!("Inspect PDF"))
-        .size((300.0, 100.0), ImGuiSetCond_FirstUseEver)
-        .build(|| {
-            ui.text(im_str!("<text>"));
-            ui.separator();
-            ui.tree_node(im_str!("Hello")).build(|| {
-                ui.tree_node(im_str!("Hello2")).build(|| {});
-            });
-            ui.tree_node(im_str!("Hello3")).build(|| {});
-        });
-    */

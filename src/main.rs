@@ -38,9 +38,9 @@ impl<'a, 'b, R: Resolve> Inspector<'a, 'b, R> {
         self.unique_id
     }
     fn draw(&mut self, ui: &Ui, root: &Dictionary) {
-        ui.text(im_str!("Root"));
+        ui.text(im_str!("PDF file"));
         ui.separator();
-        ui.tree_node(im_str!("Root")).label(im_str!("Root")).build(|| self.view_dict(root));
+        self.view_dict(root);
     }
 
     fn view_primitive(&mut self, prim: &Primitive) {

@@ -25,7 +25,7 @@ mod support_gfx;
 const CLEAR_COLOR: [f32; 4] = [0.2, 0.2, 0.3, 1.0];
 
 fn main() {
-    let backend = Vec::<u8>::open("files/jpeg.pdf").unwrap();
+    let backend = Vec::<u8>::open("files/minimal.pdf").unwrap();
     let (xref_tab, trailer) = backend.read_xref_table_and_trailer().unwrap();
 
     let mut search_paths = RefCell::new(Vec::new());

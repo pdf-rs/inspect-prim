@@ -4,8 +4,8 @@ version = "0.1.0"
 authors = ["Erlend Langseth <3rlendhl@gmail.com>"]
 
 [dependencies]
-# pdf = {git = "https://github.com/pdf-rs/pdf"}
-pdf = {path = "../pdf" }
+pdf = {git = "https://github.com/pdf-rs/pdf"}
+# pdf = {path = "../pdf" }
 gfx = "0.16.1"
 glutin = "0.9.2"
 gfx_window_glutin = "0.17.0"

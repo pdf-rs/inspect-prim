@@ -19,19 +19,23 @@ use backend::*;
 use primitive::*;
 
 use std::cell::RefCell;
+use std::io::Read;
 
 mod support_gfx;
 
 const CLEAR_COLOR: [f32; 4] = [0.2, 0.2, 0.3, 1.0];
 
 fn main() {
-    let backend = Vec::<u8>::open("files/minimal.pdf").unwrap();
-    let (xref_tab, trailer) = backend.read_xref_table_and_trailer().unwrap();
+    let mut file = std::fs::File::open("files/minimal.pdf").unwrap();
+    let mut data = Vec::new();
+    file.read_to_end(&mut data).unwrap();
+
+    let (xref_tab, trailer) = data.read_xref_table_and_trailer().unwrap();
 
     let mut search_paths = RefCell::new(Vec::new());
 
     support_gfx::run("hello_gfx.rs".to_owned(), CLEAR_COLOR, |ui| {
-        let inspector = Inspector::new(ui, |x| backend.resolve(&xref_tab, x) );
+        let inspector = Inspector::new(ui, |x| data.resolve(&xref_tab, x) );
         ui.window(im_str!("Inspect PDF"))
             .size((300.0, 100.0), ImGuiSetCond_FirstUseEver)
             .build(|| {

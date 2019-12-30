@@ -19,23 +19,23 @@ use backend::*;
 use primitive::*;
 
 use std::cell::RefCell;
-use std::io::Read;
+use std::fs;
+use std::env;
 
 mod support_gfx;
 
 const CLEAR_COLOR: [f32; 4] = [0.2, 0.2, 0.3, 1.0];
 
 fn main() {
-    let mut file = std::fs::File::open("files/minimal.pdf").unwrap();
-    let mut data = Vec::new();
-    file.read_to_end(&mut data).unwrap();
-
+    let file_name = env::args().nth(1).expect("no file given");
+    let data = fs::read(file_name).expect("could not open file");
     let (xref_tab, trailer) = data.read_xref_table_and_trailer().unwrap();
+    let mut storage = pdf::file::Storage::new(data, xref_tab);
 
     let mut search_paths = RefCell::new(Vec::new());
 
     support_gfx::run("hello_gfx.rs".to_owned(), CLEAR_COLOR, |ui| {
-        let inspector = Inspector::new(ui, |x| data.resolve(&xref_tab, x) );
+        let inspector = Inspector::new(ui, &storage);
         ui.window(im_str!("Inspect PDF"))
             .size((300.0, 100.0), ImGuiSetCond_FirstUseEver)
             .build(|| {
@@ -82,11 +82,11 @@ fn path_to_string(path: &SearchPath) -> String {
 
 struct Inspector<'a, 'b: 'a, R: Resolve> {
     ui: &'a Ui<'b>,
-    resolve: R ,
+    resolve: &'a R ,
 }
 
 impl<'a, 'b, R: Resolve> Inspector<'a, 'b, R> {
-    pub fn new(ui: &'a Ui<'b>, resolve: R) -> Inspector<'a, 'b, R> {
+    pub fn new(ui: &'a Ui<'b>, resolve: &'a R) -> Inspector<'a, 'b, R> {
         Inspector {
             ui: ui,
             resolve: resolve,

@@ -110,7 +110,7 @@ impl<'a, R: Resolve> SearchAlg<'a, R> {
 impl<'a, 'b, R: Resolve> Inspector<'a, 'b, R> {
 
     pub fn search_key(&self, node: &Primitive, search_key: &str) -> Vec<SearchPath> {
-        let mut alg = SearchAlg::new(&self.resolve);
+        let mut alg = SearchAlg::new(self.resolve);
         alg.search_key(node, search_key)
     }
 }

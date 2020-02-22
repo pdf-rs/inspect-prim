@@ -104,7 +104,7 @@ impl<'a, 'b, R: Resolve> Inspector<'a, 'b, R> {
             Primitive::Integer (x) => self.ui.text(im_str!("{}", x)),
             Primitive::Number (x) => self.ui.text(im_str!("{}", x)),
             Primitive::Boolean (x) => self.ui.text(im_str!("{}", x)),
-            Primitive::String (ref x) => self.ui.text(im_str!("\"{}\"", x.as_str().unwrap_or("<indiscernible string>"))),
+            Primitive::String (ref x) => self.ui.text(im_str!("\"{}\"", x.as_str().unwrap_or("<indiscernible string>".into()))),
             Primitive::Stream (ref x) => {
                 self.attr("Data", &PdfString::new(x.data.clone()).into(), 0);
                 self.attr("Info", &x.info.clone().into(), 1);
